@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Automated Doctor Appointment System</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f5f7fa;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #2c3e50;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    select, input, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e6ed;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    #appointment-summary {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e6f7ff;
+      border-radius: 8px;
+      display: none;
+    }
+    #appointment-summary h3 {
+      margin-top: 0;
+    }
+    #appointment-summary p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Doctor Appointment System</h1>
+    <div class="form-group">
+      <label for="doctor">Select Doctor</label>
+      <select id="doctor">
+        <option value="">-- Select Doctor --</option>
+        <option value="Dr. Smith (Cardiologist)">Dr. Smith (Cardiologist)</option>
+        <option value="Dr. Lee (Dermatologist)">Dr. Lee (Dermatologist)</option>
+        <option value="Dr. Patel (Pediatrician)">Dr. Patel (Pediatrician)</option>
+        <option value="Dr. Kumar (General Physician)">Dr. Kumar (General Physician)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="date">Appointment Date</label>
+      <input type="date" id="date">
+    </div>
+    <div class="form-group">
+      <label for="time">Appointment Time</label>
+      <input type="time" id="time">
+    </div>
+    <div class="form-group">
+      <label for="name">Patient Name</label>
+      <input type="text" id="name" placeholder="Enter your name">
+    </div>
+    <div class="form-group">
+      <label for="phone">Phone Number</label>
+      <input type="tel" id="phone" placeholder="Enter your phone number">
+    </div>
+    <div class="form-group">
+      <label for="reason">Reason for Visit</label>
+      <textarea id="reason" placeholder="Briefly describe your reason for visit"></textarea>
+    </div>
+    <button id="book-appointment">Book Appointment</button>
+    <div id="appointment-summary">
+      <h3>Appointment Confirmed</h3>
+      <div id="summary-details"></div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const bookBtn = document.getElementById('book-appointment');
+      const appointmentSummary = document.getElementById('appointment-summary');
+      const summaryDetails = document.getElementById('summary-details');
+
+      bookBtn.addEventListener('click', function() {
+        const doctor = document.getElementById('doctor').value;
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const name = document.getElementById('name').value;
+        const phone = document.getElementById('phone').value;
+        const reason = document.getElementById('reason').value;
+
+        if (!doctor || !date || !time || !name || !phone) {
+          alert('Please fill all required fields.');
+          return;
+        }
+
+        appointmentSummary.style.display = 'block';
+        summaryDetails.innerHTML = `
+          <p><strong>Doctor:</strong> ${doctor}</p>
+          <p><strong>Date:</strong> ${date}</p>
+          <p><strong>Time:</strong> ${time}</p>
+          <p><strong>Patient Name:</strong> ${name}</p>
+          <p><strong>Phone:</strong> ${phone}</p>
+          <p><strong>Reason:</strong> ${reason}</p>
+        `;
+        alert('Appointment booked successfully!');
+      });
+    });
+  </script>
+</body>
+</html>
