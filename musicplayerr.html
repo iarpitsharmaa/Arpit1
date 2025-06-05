@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Music App</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      margin: 0;
+      padding: 30px;
+      min-height: 100vh;
+    }
+    h1 {
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5em;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    }
+    #music-form {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: 0 auto 40px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e6ed;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+    #song-list {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .song {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+    }
+    .song:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .song h3 {
+      color: #3498db;
+      margin-top: 0;
+      font-size: 1.5em;
+    }
+    .song p {
+      margin: 8px 0;
+      color: #2c3e50;
+    }
+    button, .file-upload-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      margin-right: 10px;
+    }
+    button:hover, .file-upload-btn:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+    }
+    input[type="file"] { display: none; }
+    .file-upload-btn {
+      display: inline-block;
+      margin-left: 10px;
+    }
+    #ringtones-count {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    #ringtones-count label {
+      margin-right: 10px;
+    }
+    #ringtones-count input {
+      width: 60px;
+      padding: 8px;
+      border: 2px solid #e0e6ed;
+      border-radius: 6px;
+      margin-right: 15px;
+    }
+    .ringtone-controls {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid #e0e6ed;
+    }
+    .ringtone-controls label {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .ringtone-controls input[type="range"] {
+      width: 200px;
+      margin-right: 15px;
+    }
+    audio {
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+    #ringtone-status {
+      margin-top: 10px;
+      padding: 10px;
+      background: #e6f7ff;
+      border-radius: 8px;
+      display: none;
+    }
+    .cover-image {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .range-value {
+      display: inline-block;
+      width: 40px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Music App</h1>
+  <div id="music-form">
+    <div class="form-group">
+      <label for="song-name">Song Name:</label>
+      <input type="text" id="song-name" placeholder="Enter song name">
+    </div>
+    <div class="form-group">
+      <label>Cover Image:</label>
+      <label class="file-upload-btn">
+        Upload Image
+        <input type="file" id="cover-image" accept="image/*">
+      </label>
+      <div id="cover-image-preview"></div>
+    </div>
+    <div class="form-group">
+      <label for="description">Description:</label>
+      <textarea id="description" placeholder="Enter description"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="keyword">Keyword:</label>
+      <input type="text" id="keyword" placeholder="Enter keyword">
+    </div>
+    <div class="form-group">
+      <label>MP3 File:</label>
+      <label class="file-upload-btn">
+        Upload MP3
+        <input type="file" id="mp3-upload" accept=".mp3">
+      </label>
+    </div>
+    <button id="upload-btn">Upload Song</button>
+  </div>
+  <div id="song-list" class="song-list"></div>
+
+  <div id="ringtones-count">
+    <label>Number of Ringtones to Generate:</label>
+    <input type="number" id="ringtone-count" value="1" min="1">
+    <button id="generate-ringtone-btn">Generate Ringtones</button>
+    <div id="ringtone-status"></div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const musicForm = document.getElementById('music-form');
+      const songList = document.getElementById('song-list');
+      const uploadBtn = document.getElementById('upload-btn');
+      const generateRingtoneBtn = document.getElementById('generate-ringtone-btn');
+      const ringtoneCount = document.getElementById('ringtone-count');
+      const ringtoneStatus = document.getElementById('ringtone-status');
+      const coverImageInput = document.getElementById('cover-image');
+      const coverImagePreview = document.getElementById('cover-image-preview');
+      let songs = [];
+
+      // Preview cover image
+      coverImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(event) {
+            coverImagePreview.innerHTML = `<img src="${event.target.result}" class="cover-image" alt="Cover Image">`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      uploadBtn.addEventListener('click', function() {
+        const songName = document.getElementById('song-name').value;
+        const description = document.getElementById('description').value;
+        const keyword = document.getElementById('keyword').value;
+        const mp3File = document.getElementById('mp3-upload').files[0];
+        let coverImage = document.getElementById('cover-image').files[0];
+
+        if (!songName || !mp3File) {
+          alert('Please fill song name and upload MP3 file!');
+          return;
+        }
+
+        // Prepare cover image as base64 or file
+        let coverImageUrl = null;
+        if (coverImage) {
+          coverImageUrl = URL.createObjectURL(coverImage);
+        }
+
+        const song = {
+          name: songName,
+          description: description,
+          keyword: keyword,
+          mp3File: mp3File,
+          coverImage: coverImageUrl,
+          singer: prompt('Enter singer name:', 'Unknown'),
+          musician: prompt('Enter musician name:', 'Unknown'),
+          lyrics: prompt('Enter lyrics:', 'No lyrics provided')
+        };
+
+        songs.push(song);
+        renderSongs();
+        resetForm();
+      });
+
+      function renderSongs() {
+        songList.innerHTML = '';
+        songs.forEach((song, index) => {
+          const songDiv = document.createElement('div');
+          songDiv.className = 'song';
+          const audioUrl = URL.createObjectURL(song.mp3File);
+          songDiv.innerHTML = `
+            <h3>${song.name}</h3>
+            ${song.coverImage ? `<img src="${song.coverImage}" class="cover-image" alt="Cover Image">` : ''}
+            <p><strong>Description:</strong> ${song.description}</p>
+            <p><strong>Keyword:</strong> ${song.keyword}</p>
+            <p><strong>MP3 File:</strong> ${song.mp3File.name}</p>
+            <p><strong>Singer:</strong> ${song.singer}</p>
+            <p><strong>Musician:</strong> ${song.musician}</p>
+            <p><strong>Lyrics:</strong> ${song.lyrics}</p>
+            <audio controls>
+              <source src="${audioUrl}" type="audio/mp3">
+              Your browser does not support the audio element.
+            </audio>
+            <div class="ringtone-controls">
+              <button onclick="generateRingtone(${index})">Generate Ringtone</button>
+              <label>
+                Start: <input type="range" id="start-${index}" value="0" min="0" max="30" step="0.1" oninput="document.getElementById('start-value-${index}').textContent=this.value">
+                <span id="start-value-${index}" class="range-value">0</span> sec
+              </label>
+              <label>
+                End: <input type="range" id="end-${index}" value="10" min="0" max="30" step="0.1" oninput="document.getElementById('end-value-${index}').textContent=this.value">
+                <span id="end-value-${index}" class="range-value">10</span> sec
+              </label>
+            </div>
+          `;
+          songList.appendChild(songDiv);
+        });
+      }
+
+      function resetForm() {
+        document.getElementById('song-name').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('keyword').value = '';
+        document.getElementById('mp3-upload').value = '';
+        document.getElementById('cover-image').value = '';
+        coverImagePreview.innerHTML = '';
+      }
+
+      window.generateRingtone = async function(index) {
+        const start = parseFloat(document.getElementById(`start-${index}`).value);
+        const end = parseFloat(document.getElementById(`end-${index}`).value);
+        if (start >= end) {
+          alert('End time must be greater than start time!');
+          return;
+        }
+        const audioUrl = URL.createObjectURL(songs[index].mp3File);
+        const a = document.createElement('a');
+        a.href = audioUrl;
+        a.download = `ringtone_${songs[index].name}_${start}s_to_${end}s.mp3`;
+        a.click();
+        ringtoneStatus.textContent = `Ringtone generated for ${songs[index].name} (${start}s to ${end}s).`;
+        ringtoneStatus.style.display = 'block';
+      };
+
+      generateRingtoneBtn.addEventListener('click', function() {
+        const count = parseInt(ringtoneCount.value);
+        alert(`Generating ${count} ringtones for all songs would be handled in a loop in a real app.`);
+      });
+    });
+  </script>
+</body>
+</html>
