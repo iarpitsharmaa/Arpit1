@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Billing </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- jsPDF and autoTable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:600,400|Roboto:400,500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: linear-gradient(120deg, #e0e7ff 0%, #f9fafb 100%);
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(90deg, #4f8cff 60%, #1e90ff 100%);
+      color: #fff;
+      padding: 28px 0 18px 0;
+      text-align: center;
+      font-family: 'Montserrat', sans-serif;
+      letter-spacing: 1.5px;
+      box-shadow: 0 2px 12px rgba(79,140,255,0.10);
+      font-size: 2.1em;
+      font-weight: 600;
+    }
+    .container {
+      display: flex; flex-wrap: wrap;
+      
+      margin: 30px auto 0 auto; max-width: 950px; gap: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px rgba(79,140,255,0.08);
+      padding: 28px 24px 22px 24px;
+      flex: 1 1 350px; min-width: 320px; margin-bottom: 22px;
+      transition: box-shadow 0.2s;
+    }
+    .card:hover { box-shadow: 0 8px 32px rgba(79,140,255,0.13); }
+    .card h2 {
+      margin-top: 0; font-size: 1.35em; color: #2563eb;
+      letter-spacing: 0.5px; font-family: 'Montserrat', sans-serif;
+    }
+    label {
+      display: block; margin-bottom: 4px; color: #444;
+      font-weight: 500; font-size: 1em;
+    }
+    input[type="text"], input[type="number"] {
+      width: 100%; padding: 10px 12px; margin-bottom: 0;
+      border: 1.5px solid #d0d7de; border-radius: 7px; font-size: 1em;
+      box-sizing: border-box; background: #f9fafb; transition: border 0.2s;
+      font-family: inherit; outline: none;
+      margin-bottom: 13px;
+    }
+    input[type="text"]:focus, input[type="number"]:focus {
+      border: 2px solid #4f8cff; background: #fff;
+      box-shadow: 0 0 0 3px #e0e7ff;
+    }
+    .course-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .course-table th, .course-table td {
+      border: 1px solid #e5e9f2; padding: 9px 12px; text-align: left; font-size: 1em;
+    }
+    .course-table th {
+      background: #e0e7ff; color: #1e40af; font-weight: 600;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .course-table td button {
+      background: #f5f7fa; border: none; color: #4f8cff; font-weight: bold;
+      cursor: pointer; border-radius: 4px; padding: 4px 11px; margin-right: 5px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .course-table td button:hover { background: #eaf0fb; color: #1e40af; }
+    .actions {
+      margin-top: 15px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    }
+    .actions label { margin-bottom: 0; margin-right: 5px; font-weight: 400; color: #3d4a5c; }
+    .actions input[type="number"] { width: 80px; margin-bottom: 0; }
+    .btn {
+      background: linear-gradient(90deg, #4f8cff 60%, #1e90ff 100%);
+      color: #fff; border: none; border-radius: 7px; padding: 10px 26px;
+      font-size: 1.1em; font-weight: 600; cursor: pointer; transition: background 0.2s, box-shadow 0.2s;
+      margin-top: 10px; margin-bottom: 10px; box-shadow: 0 1px 8px rgba(79,140,255,0.10);
+      letter-spacing: 0.5px;
+    }
+    .btn:hover, .btn:focus { background: #2563eb; box-shadow: 0 2px 16px #4f8cff33; }
+    .bill-summary {
+      background: #f3f8ff; border-radius: 12px; padding: 22px 28px; margin-top: 20px; margin-bottom: 20px;
+      box-shadow: 0 1px 10px rgba(79,140,255,0.10);
+      font-size: 1.05em;
+    }
+    .bill-summary h3 { margin-top: 0; color: #1e40af; font-size: 1.18em; }
+    .bill-summary table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    .bill-summary th, .bill-summary td { border: 1px solid #e5e9f2; padding: 8px 10px; font-size: 1em; text-align: left; }
+    .bill-summary th { background: #e0e7ff; }
+    .summary-row { font-weight: 600; color: #2563eb; }
+    .emi-table { margin-top: 10px; margin-bottom: 10px; }
+    .emi-table input[type="number"] { width: 90px; margin-bottom: 0; }
+    .emi-table th, .emi-table td { text-align: center; }
+    .emi-table th { background: #f5faff; }
+    .emi-warning { color: #e74c3c; font-size: 1em; margin-top: 3px; font-weight: 500; }
+    .fixed-note {
+      background: #fffbe8; color: #b8860b; border: 1px solid #ffe58f;
+      border-radius: 7px; padding: 12px 14px; margin: 10px 0 0 0;
+      font-size: 1.05em; font-weight: 600;
+      box-shadow: 0 1px 6px #ffe58f33;
+    }
+    @media (max-width: 900px) {
+      .container { flex-direction: column; gap: 0; }
+      .card { min-width: unset; }
+      header { font-size: 1.3em; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    🎓 Student Billing 
+  </header>
+  <div class="container">
+    <div class="card" style="flex:1.2;">
+      <h2>Student Details</h2>
+      <label for="studentName">Name</label>
+      <input type="text" id="studentName" placeholder="Enter student name" />
+      <label for="studentAge">Age</label>
+      <input type="number" id="studentAge" placeholder="Enter age" min="1" />
+      <label for="studentRoll">Roll No</label>
+      <input type="text" id="studentRoll" placeholder="Enter roll number" />
+    </div>
+    <div class="card" style="flex:1;">
+      <h2>Bill Details</h2>
+      <label for="billId">Bill ID / Reference No</label>
+      <input type="text" id="billId" placeholder="Enter bill/reference number" />
+      <label for="billRoll">Roll No</label>
+      <input type="text" id="billRoll" placeholder="Enter roll number" />
+    </div>
+  </div>
+
+  <!-- Course Table Entry -->
+  <div class="container" style="margin-top: 0;">
+    <div class="card" style="width: 100%;">
+      <h2>Courses</h2>
+      <table class="course-table" id="coursesTable">
+        <thead>
+          <tr>
+            <th>Course ID</th>
+            <th>Name</th>
+            <th>Fee</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Courses will be added here -->
+        </tbody>
+        <tfoot>
+          <tr>
+            <td><input type="text" id="newCourseId" placeholder="ID" /></td>
+            <td><input type="text" id="newCourseName" placeholder="Name" /></td>
+            <td><input type="number" id="newCourseFee" placeholder="Fee" min="0" /></td>
+            <td>
+              <button class="btn" id="addCourseBtn" style="padding:5px 12px;">Add</button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      <div class="fixed-note" id="fixedNote">Money is not refundable.</div>
+    </div>
+  </div>
+
+  <!-- Discount, Total, Payment Options -->
+  <div class="container" style="margin-top: 0;">
+    <div class="card" style="width: 100%;">
+      <div class="actions">
+        <label for="discount">Discount (%)</label>
+        <input type="number" id="discount" placeholder="0" min="0" max="100" value="0" />
+        <span style="font-weight: 500; margin-left: 30px;">Total: ₹ <span id="totalAmount">0</span></span>
+      </div>
+      <div class="actions" style="margin-top: 10px;">
+        <label>Payment Option:</label>
+        <input type="radio" id="oneTime" name="paymentOption" value="oneTime" checked />
+        <label for="oneTime" style="margin-right: 20px;">One Time</label>
+        <input type="radio" id="emi" name="paymentOption" value="emi" />
+        <label for="emi">EMI</label>
+        <div id="emiOptions" style="display: none; margin-left: 20px; flex-direction: column">
+          <div style="display: flex; gap: 10px; align-items: center">
+            <label for="emiMonths">Months</label>
+            <input type="number" id="emiMonths" min="2" value="2" style="width: 60px" />
+            <label for="emiInterest">Interest Rate/Month (%)</label>
+            <input type="number" id="emiInterest" min="0" value="0" style="width: 60px" />
+          </div>
+          <div id="emiAmountTableContainer" style="margin-top: 10px"></div>
+          <div id="emiWarning" class="emi-warning"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bill Summary and Download -->
+  <div class="container" style="margin-top: 0;">
+    <div class="card" style="width: 100%;">
+      <div class="bill-summary" id="billSummary"></div>
+      <button class="btn" id="downloadBtn">Download Bill (PDF)</button>
+    </div>
+  </div>
+  <script>
+    let courses = [];
+    let editIndex = -1;
+    const coursesTableBody = document.querySelector("#coursesTable tbody");
+    const addCourseBtn = document.getElementById("addCourseBtn");
+    const discountInput = document.getElementById("discount");
+    const totalAmountSpan = document.getElementById("totalAmount");
+    const paymentRadios = document.getElementsByName("paymentOption");
+    const emiOptionsDiv = document.getElementById("emiOptions");
+    const emiMonthsInput = document.getElementById("emiMonths");
+    const emiInterestInput = document.getElementById("emiInterest");
+    const emiAmountTableContainer = document.getElementById("emiAmountTableContainer");
+    const emiWarning = document.getElementById("emiWarning");
+    const billSummaryDiv = document.getElementById("billSummary");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const fixedNoteText = "Money is not refundable.";
+
+    // Course entry fields in table footer
+    const newCourseId = document.getElementById("newCourseId");
+    const newCourseName = document.getElementById("newCourseName");
+    const newCourseFee = document.getElementById("newCourseFee");
+
+    function formatINR(num) {
+      return Number(num).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function renderCourses() {
+      coursesTableBody.innerHTML = "";
+      courses.forEach((course, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${course.id}</td>
+          <td>${course.name}</td>
+          <td>₹ ${formatINR(course.fee)}</td>
+          <td>
+            <button onclick="editCourse(${idx})">Edit</button>
+            <button onclick="removeCourse(${idx})" style="color:#e74c3c;">Remove</button>
+          </td>
+        `;
+        coursesTableBody.appendChild(tr);
+      });
+    }
+
+    function clearCourseFooterInputs() {
+      newCourseId.value = "";
+      newCourseName.value = "";
+      newCourseFee.value = "";
+      newCourseId.focus();
+    }
+
+    addCourseBtn.onclick = function () {
+      addCourseFromFooter();
+    };
+
+    function addCourseFromFooter() {
+      const id = newCourseId.value.trim();
+      const name = newCourseName.value.trim();
+      const fee = parseFloat(newCourseFee.value);
+      if (!id || !name || isNaN(fee) || fee < 0) {
+        alert("Please enter valid course details.");
+        return;
+      }
+      courses.push({ id, name, fee });
+      renderCourses();
+      clearCourseFooterInputs();
+      updateBill();
+    }
+
+    // Allow Enter key to add course from any input in the footer row
+    [newCourseId, newCourseName, newCourseFee].forEach(inp => {
+      inp.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+          addCourseFromFooter();
+        }
+      });
+    });
+
+    window.editCourse = function (idx) {
+      const course = courses[idx];
+      newCourseId.value = course.id;
+      newCourseName.value = course.name;
+      newCourseFee.value = course.fee;
+      courses.splice(idx, 1);
+      renderCourses();
+      updateBill();
+      newCourseId.focus();
+    };
+
+    window.removeCourse = function (idx) {
+      if (confirm("Remove this course?")) {
+        courses.splice(idx, 1);
+        renderCourses();
+        updateBill();
+      }
+    };
+
+    function calculateTotal() {
+      let total = courses.reduce((sum, c) => sum + Number(c.fee), 0);
+      let discount = parseFloat(discountInput.value) || 0;
+      if (discount > 100) discount = 100;
+      if (discount < 0) discount = 0;
+      let discounted = total * (1 - discount / 100);
+      return { total, discounted, discount };
+    }
+
+    // EMI Amount Table Logic (User enters only first month, rest auto-calculated)
+    function renderEMIAmountTable() {
+      const months = parseInt(emiMonthsInput.value) || 2;
+      const { discounted } = calculateTotal();
+      let emiAmounts = getEMIAmounts();
+      if (emiAmounts.length !== months) {
+        emiAmounts = Array(months).fill(0);
+        setEMIAmounts(emiAmounts);
+      }
+      if (!emiAmounts[0] || emiAmounts[0] <= 0) {
+        emiAmounts[0] = Math.floor(discounted / months);
+      }
+      let remaining = discounted - emiAmounts[0];
+      let perMonth = months > 1 ? Math.floor(remaining / (months - 1)) : 0;
+      for (let i = 1; i < months; i++) emiAmounts[i] = perMonth;
+      if (months > 1) emiAmounts[months - 1] += remaining - perMonth * (months - 1);
+      setEMIAmounts(emiAmounts);
+
+      let table = `<table class="emi-table"><tr><th>Month</th><th>Amount (₹)</th><th>Percent (%)</th></tr>`;
+      for (let i = 0; i < months; i++) {
+        let percent = discounted === 0 ? 0 : ((emiAmounts[i] / discounted) * 100).toFixed(2);
+        table += `<tr>
+          <td>Month ${i + 1}</td>
+          <td>
+            ${i === 0
+              ? `<input type="number" min="0" value="${emiAmounts[i]}" data-emi-month="${i}" class="emi-amount-input" />`
+              : `<input type="number" value="${emiAmounts[i]}" readonly style="background:#f5f5f5;" />`
+            }
+          </td>
+          <td>${percent}%</td>
+        </tr>`;
+      }
+      table += `</table>`;
+      emiAmountTableContainer.innerHTML = table;
+      document.querySelectorAll(".emi-amount-input").forEach((inp) => {
+        inp.addEventListener("input", function () {
+          let idx = parseInt(this.getAttribute("data-emi-month"));
+          let newValue = parseFloat(this.value) || 0;
+          let emiAmounts = getEMIAmounts();
+          emiAmounts[idx] = newValue;
+          setEMIAmounts(emiAmounts);
+          renderEMIAmountTable();
+          updateBill();
+        });
+      });
+    }
+
+    function getEMIAmounts() {
+      try {
+        return JSON.parse(localStorage.getItem("emiAmounts") || "[]");
+      } catch {
+        return [];
+      }
+    }
+    function setEMIAmounts(arr) {
+      localStorage.setItem("emiAmounts", JSON.stringify(arr));
+    }
+    function clearEMIAmounts() {
+      localStorage.removeItem("emiAmounts");
+    }
+
+    discountInput.oninput = updateBill;
+
+    paymentRadios.forEach((radio) => {
+      radio.onchange = function () {
+        emiOptionsDiv.style.display = document.getElementById("emi").checked ? "inline-flex" : "none";
+        updateBill();
+      };
+    });
+    emiMonthsInput.oninput = function () {
+      clearEMIAmounts();
+      renderEMIAmountTable();
+      updateBill();
+    };
+    emiInterestInput.oninput = updateBill;
+
+    function updateBill() {
+      const { total, discounted, discount } = calculateTotal();
+      totalAmountSpan.textContent = formatINR(discounted);
+
+      const isEMI = document.getElementById("emi").checked;
+      let emiDetails = "";
+      emiWarning.textContent = "";
+      if (isEMI && discounted > 0) {
+        const months = parseInt(emiMonthsInput.value) || 2;
+        const interestRate = parseFloat(emiInterestInput.value) || 0;
+        let emiAmounts = getEMIAmounts();
+        if (emiAmounts[0] > discounted) {
+          emiWarning.textContent = "Warning: First month EMI cannot exceed total amount to pay.";
+        } else {
+          emiWarning.textContent = "";
+        }
+        let sumEMI = emiAmounts.reduce((a, b) => a + b, 0);
+        if (Math.abs(sumEMI - discounted) > 0.01) {
+          emiWarning.textContent = "Warning: EMI calculation error. Please check the values.";
+        }
+        let remaining = discounted;
+        let emiRows = "";
+        for (let i = 0; i < months; i++) {
+          let principal = emiAmounts[i];
+          let percent = discounted === 0 ? 0 : ((principal / discounted) * 100).toFixed(2);
+          let interest = remaining * (interestRate / 100);
+          let emiAmt = principal + interest;
+          emiRows += `<tr>
+            <td>Month ${i + 1}</td>
+            <td>₹ ${formatINR(principal)}</td>
+            <td>${percent}%</td>
+            <td>₹ ${formatINR(emiAmt)}</td>
+            <td>₹ ${formatINR(interest)}</td>
+          </tr>`;
+          remaining -= principal;
+        }
+        emiDetails = `
+          <h4>EMI Breakdown</h4>
+          <table>
+            <tr><th>Month</th><th>Principal</th><th>Percent</th><th>EMI Amount</th><th>Interest</th></tr>
+            ${emiRows}
+          </table>
+        `;
+      }
+      billSummaryDiv.innerHTML = `
+        <h3>Bill Summary</h3>
+        <table>
+          <tr><th>Student Name</th><td>${document.getElementById("studentName").value || "-"}</td>
+              <th>Age</th><td>${document.getElementById("studentAge").value || "-"}</td></tr>
+          <tr><th>Student Roll No</th><td>${document.getElementById("studentRoll").value || "-"}</td>
+              <th>Bill ID</th><td>${document.getElementById("billId").value || "-"}</td></tr>
+          <tr><th>Bill Roll No</th><td>${document.getElementById("billRoll").value || "-"}</td>
+              <th></th><td></td></tr>
+        </table>
+        <h4>Courses</h4>
+        <table>
+          <tr><th>Course ID</th><th>Name</th><th>Fee</th></tr>
+          ${courses.length === 0 ? `<tr><td colspan="3">No courses added.</td></tr>` : courses.map(c => `<tr><td>${c.id}</td><td>${c.name}</td><td>₹ ${formatINR(c.fee)}</td></tr>`).join("")}
+        </table>
+        <p><strong>Note:</strong><br />${fixedNoteText}</p>
+        <table>
+          <tr><th>Total Fee</th><td>₹ ${formatINR(total)}</td></tr>
+          <tr><th>Discount</th><td>${discount}%</td></tr>
+          <tr class="summary-row"><th>Amount to Pay</th><td>₹ ${formatINR(discounted)}</td></tr>
+        </table>
+        <p><b>Payment Mode:</b> ${isEMI ? "EMI" : "One Time"}</p>
+        ${isEMI ? emiDetails : ""}
+      `;
+    }
+
+    renderCourses();
+    renderEMIAmountTable();
+    updateBill();
+
+    document.querySelectorAll("input").forEach((inp) => {
+      inp.addEventListener("input", updateBill);
+    });
+
+    document.getElementById("emi").addEventListener("change", function () {
+      renderEMIAmountTable();
+      updateBill();
+    });
+
+    downloadBtn.onclick = function () {
+      // Use window.jspdf.jsPDF and doc.autoTable
+      const doc = new window.jspdf.jsPDF();
+      const studentName = document.getElementById("studentName").value || "-";
+      const studentAge = document.getElementById("studentAge").value || "-";
+      const studentRoll = document.getElementById("studentRoll").value || "-";
+      const billId = document.getElementById("billId").value || "-";
+      const billRoll = document.getElementById("billRoll").value || "-";
+      const { total, discounted, discount } = calculateTotal();
+      const isEMI = document.getElementById("emi").checked;
+      const months = parseInt(emiMonthsInput.value) || 2;
+      const interestRate = parseFloat(emiInterestInput.value) || 0;
+      let emiAmounts = getEMIAmounts();
+
+      doc.setLineWidth(0.5);
+      doc.rect(10, 10, 190, 277);
+
+      doc.setFontSize(16);
+      doc.text("Student Billing System", 105, 18, { align: "center" });
+
+      doc.setFontSize(11);
+      doc.rect(12, 22, 186, 22);
+      doc.text(`Student Name: ${studentName}`, 15, 29);
+      doc.text(`Age: ${studentAge}`, 110, 29);
+      doc.text(`Student Roll No: ${studentRoll}`, 15, 36);
+      doc.text(`Bill ID: ${billId}`, 110, 36);
+      doc.text(`Bill Roll No: ${billRoll}`, 15, 43);
+
+      let courseBoxY = 46;
+      doc.rect(12, courseBoxY, 186, 40);
+      let courseTableY = courseBoxY + 4;
+      doc.autoTable({
+        startY: courseTableY,
+        margin: { left: 15 },
+        tableWidth: 180,
+        head: [['Course ID', 'Name', 'Fee']],
+        body: courses.length === 0 ? [['-', '-', '-']] : courses.map(c => [c.id, c.name, `₹ ${formatINR(c.fee)}`]),
+        theme: 'grid',
+        styles: { fontSize: 10, cellPadding: 2, halign: 'left' },
+        headStyles: { fillColor: [232, 241, 255], textColor: 40, fontStyle: 'bold' },
+      });
+
+      let noteY = courseBoxY + 42;
+      doc.rect(12, noteY, 186, 15);
+      doc.setFontSize(11);
+      doc.text("Note:", 15, noteY + 6);
+      doc.setFontSize(10);
+      doc.text(fixedNoteText, 25, noteY + 6);
+
+      let totalsY = noteY + 17;
+      doc.rect(12, totalsY, 186, 18);
+      doc.setFontSize(11);
+      doc.text(`Total Fee: ₹ ${formatINR(total)}`, 15, totalsY + 7);
+      doc.text(`Discount: ${discount}%`, 80, totalsY + 7);
+      doc.text(`Amount to Pay: ₹ ${formatINR(discounted)}`, 130, totalsY + 7);
+
+      let paymodeY = totalsY + 20;
+      doc.rect(12, paymodeY, 186, 10);
+      doc.setFontSize(11);
+      doc.text(`Payment Mode: ${isEMI ? "EMI" : "One Time"}`, 15, paymodeY + 7);
+
+      if (isEMI && discounted > 0) {
+        let emiBoxY = paymodeY + 12;
+        doc.rect(12, emiBoxY, 186, 50);
+        doc.setFontSize(11);
+        doc.text(`EMI Interest Rate/Month: ${interestRate}%`, 15, emiBoxY + 6);
+
+        let emiTableY = emiBoxY + 8;
+        let remaining = discounted;
+        let emiBody = [];
+        for (let i = 0; i < months; i++) {
+          let principal = emiAmounts[i];
+          let percent = discounted === 0 ? 0 : ((principal / discounted) * 100).toFixed(2);
+          let interest = remaining * (interestRate / 100);
+          let emiAmt = principal + interest;
+          emiBody.push([
+            `Month ${i + 1}`,
+            `₹ ${formatINR(principal)}`,
+            `${percent}%`,
+            `₹ ${formatINR(emiAmt)}`,
+            `₹ ${formatINR(interest)}`
+          ]);
+          remaining -= principal;
+        }
+        doc.autoTable({
+          startY: emiTableY,
+          margin: { left: 15 },
+          tableWidth: 180,
+          head: [['Month', 'Principal', 'Percent', 'EMI Amount', 'Interest']],
+          body: emiBody,
+          theme: 'grid',
+          styles: { fontSize: 9, cellPadding: 1 },
+          headStyles: { fillColor: [245, 250, 255], textColor: 40, fontStyle: 'bold' },
+        });
+      }
+
+      doc.save(`student-bill-${studentName.replace(/\s+/g, "_") || "bill"}.pdf`);
+    };
+  </script>
+</body>
+</html>
